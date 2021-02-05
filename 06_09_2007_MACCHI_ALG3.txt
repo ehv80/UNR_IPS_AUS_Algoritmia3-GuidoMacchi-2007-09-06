@@ -1,0 +1,102 @@
+Hoy más arboles:
+
+datatype Arbol = Vacio
+| Nodo of int * Arbol * Arbol
+
+"El nuevo tipo de dato Arbol puede ser Vacio
+o puede ser una TUPLA que contiene 
+	un entero: el valor almacenado en ese Nodo
+	una referencia a un Nodo izquierdo
+	una referencia a un Nodo derecho"
+
+
+fun inserta( n , Vacio ) = Nodo( n , Vacio , Vacio )
+| inserta ( n , Nodo( n' , izq , der ) ) = 
+if n < n' then Nodo( n' , inserta( n , izq ) , der )
+else if n > n' then Nodo( n' , izq , inserta( n , der ) )
+
+
+
+fun inserta( n , Vacio ) = Nodo( n , Vacio , Vacio )
+| inserta( n , a as ( Nodo( n' , izq , der ) ) ) =  if n < n' then Nodo( n' , inserta( n , izq ) , der ) 
+else if n > n' then Nodo( n' , izq , inserta( n , der ) )
+else if (* NO INSERTA *) Nodo( n' , izq , der )
+
+Recorrido "a lo ancho" (Bread First)
+
+
+			Ejemplo:
+			[a]
+		       /   \
+		      /     \
+		     /       \
+		   [b]       [c]
+		  /   \     /   \
+		 /     \   V     V
+  		[d]    [f]
+	       /         \
+             [e] 	  V          
+	    /  \
+	   V    V
+
+Recorrido por nivel: [ a, b , c ]
+
+Este tipo de recorridos no es sencillo:
+Debemos recordar donde retornar el recorrido
+Una forma es tener una funcion que recorre
+con dos argumentos uno el nodo actual (obvio)
+y otro que diga dónde debo seguir
+
+fun bf V [] = []
+| bf V( h :: s) = bf h s 
+| bf ( N( n , i , d ) ) [] = n :: ( bf i[ d ] )
+| bf ( N( n , i , d ) ) ( h :: s )
+= n :: ( bf h ( s @ [i, d ] )) 
+
+
+Pero ... ¡Por que no tener un recorre BF con un solo argumento?
+
+fun recorreBF a =
+let fun bf V[] = []
+| bf v ( h :: s ) = bf h s
+| bf ( N( n , i, d ))[] = n::( bf i [d] )
+| bf ( N( n , i , d)) (h::s) = n :: ( bf h (s @ [i,d])) 
+in bf a [] end
+
+Listo !
+
+Para probarlo puede ser conveniente alterarlo de las siguiente manera
+Ejemplo:
+
+datatype Arbol = V 
+| N of (int* int)* Arbol* Arbol;			(*int para cantidad de niveles *)
+
+o lo que si anda bien:
+
+datatype arbol = v | n of (int* int) * arbol* arbol;
+
+fun inserta( n, ( v , p ) ) = N( ( n , p ) , v , v )
+| inserta ( n, ( a as ( N ( n' , p' ) , i , d ) ) , p ) =
+if  n < n' then N( ( n' , p' ), inserta( n , ( i , p + 1 )  , d )
+else if n > n' then N( (  n' , p' ) , i , inserta( n , ( d , p + 1 ) )
+else a
+
+Construimos un árbol:
+
+val A = foldr inserta( V, 0 )  (* muchos números desordenados *)
+
+Esto va a dar problemas con foldr.
+
+Un ejemplo de Arbol:
+val A = 
+	N((1,0),
+		N((2,1)
+			N((3,2), V , V) ,
+			N((4,2), V , V) ,
+		),
+	),
+);
+
+Ejercicio:
+Tomando como base recorreBF con TIPO:  ( Arbol -> int list )
+implementar buscaBF con TIPO: ( int * Arbol -> bool ) ó ( int -> Arbol -> bool )  
